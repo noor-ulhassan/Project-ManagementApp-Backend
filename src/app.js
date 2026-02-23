@@ -3,7 +3,7 @@ import cors from "cors";
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("Hello World");
+  res.send("Project Management Backend");
 });
 
 //basic configurations--------------
@@ -22,5 +22,11 @@ app.use(
     allowedHeaders: ["Authorization", "Content-Type"],
   }),
 );
+
+// import the routes----------------
+
+import healthCheckRouter from "./routes/healthcheck.routes.js";
+
+app.use("/api/v1/healthcheck", healthCheckRouter);
 
 export default app;
