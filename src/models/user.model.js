@@ -31,7 +31,6 @@ const userSchema = new Schema(
     },
     fullName: {
       type: String,
-      required: true,
       trim: true,
     },
     password: {
@@ -62,12 +61,14 @@ const userSchema = new Schema(
     timestamps: true,
   },
 );
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  await bcrypt.hash(this.password, 10);
-  next();
-});
 
+userSchema.pre("save", async function () {
+  // 1. If password is NOT modified, stop here and move on (No semicolon, use return)
+  if (!this.isModified("password")) return;
+
+  // 2. Hash the password AND assign it back to this.password
+  this.password = await bcrypt.hash(this.password, 10);
+});
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
@@ -97,14 +98,14 @@ userSchema.methods.generateRefreshToken = function () {
 userSchema.methods.generateTemporaryToken = function () {
   const unhashedToken = crypto.randomBytes(20).toString("hex");
 
-  const hshedToken = crypto
+  const hashedToken = crypto
     .createHash("sha256")
     .update(unhashedToken)
     .digest("hex");
 
   const tokenExpiry = Date.now() + 20 * 60 * 1000; // 20 minutes
 
-  return { unhashedToken, hshedToken, tokenExpiry };
+  return { unhashedToken, hashedToken, tokenExpiry };
 };
 
 export const User = mongoose.model("User", userSchema);
